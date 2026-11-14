@@ -711,3 +711,7 @@ public class DragonLauncher extends JFrame {
             SwingUtilities.invokeLater(() -> { mainStatus.setText("Ошибка: " + ex.getMessage()); playBtn.setEnabled(true); });
         }
     }
+    public static void main(String[] args) {
+        SwingUtilities.invokeLater(() -> new DragonLauncher().setVisible(true));
+    }
+}
