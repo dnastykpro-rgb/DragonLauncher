@@ -375,7 +375,7 @@ public class DragonLauncher extends JFrame {
         mcPathField.setText(Paths.get(System.getenv("APPDATA"), ".minecraft").toString());
         mcPathField.setMaximumSize(new Dimension(460, 38));
 
-        JLabel verInfo = new JLabel("DragonLauncher v2.1  •  dnastykpro-rgb.github.io");
+        JLabel verInfo = new JLabel("DragonLauncher v2.2  •  dnastykpro-rgb.github.io");
         verInfo.setForeground(new Color(148, 163, 184));
         verInfo.setFont(new Font("SansSerif", Font.PLAIN, 11));
 
@@ -441,9 +441,14 @@ public class DragonLauncher extends JFrame {
     private void fetchConfigsFromSite() {
         SwingUtilities.invokeLater(() -> cfgStatusLbl.setText("Загрузка конфигов с сайта..."));
         try {
-            HttpClient client = HttpClient.newHttpClient();
-            String json = client.send(HttpRequest.newBuilder().uri(URI.create(BIN_URL)).GET().build(), HttpResponse.BodyHandlers.ofString()).body();
-            JsonObject db = JsonParser.parseString(json).getAsJsonObject();
+            HttpClient client = HttpClient.newBuilder().followRedirects(HttpClient.Redirect.ALWAYS).build();
+            HttpRequest req = HttpRequest.newBuilder()
+                    .uri(URI.create(BIN_URL))
+                    .header("Accept", "application/json")
+                    .GET()
+                    .build();
+            String json = client.send(req, HttpResponse.BodyHandlers.ofString()).body().trim();
+            JsonObject db = json.startsWith("{") ? JsonParser.parseString(json).getAsJsonObject() : new JsonObject();
             JsonArray arr = db.has("__configs") && db.get("__configs").isJsonArray() ? db.getAsJsonArray("__configs") : new JsonArray();
 
             SwingUtilities.invokeLater(() -> {
@@ -512,9 +517,16 @@ public class DragonLauncher extends JFrame {
                 Path currentFile = Paths.get(mcPathField.getText().trim(), "DragonVisuals", "current.json");
                 String content = Files.exists(currentFile) ? Files.readString(currentFile, StandardCharsets.UTF_8) : "{\"theme\":\"PurpleGlow\",\"ClickGui\":true}";
 
-                HttpClient client = HttpClient.newHttpClient();
-                String rawDb = client.send(HttpRequest.newBuilder().uri(URI.create(BIN_URL)).GET().build(), HttpResponse.BodyHandlers.ofString()).body();
-                JsonObject db = JsonParser.parseString(rawDb).getAsJsonObject();
+                HttpClient client = HttpClient.newBuilder().followRedirects(HttpClient.Redirect.ALWAYS).build();
+                HttpRequest getReq = HttpRequest.newBuilder()
+                        .uri(URI.create(BIN_URL))
+                        .header("Accept", "application/json")
+                        .GET()
+                        .build();
+                HttpResponse<String> getRes = client.send(getReq, HttpResponse.BodyHandlers.ofString());
+                String rawDb = getRes.body() == null ? "" : getRes.body().trim();
+
+                JsonObject db = rawDb.startsWith("{") ? JsonParser.parseString(rawDb).getAsJsonObject() : new JsonObject();
                 JsonArray arr = db.has("__configs") && db.get("__configs").isJsonArray() ? db.getAsJsonArray("__configs") : new JsonArray();
 
                 JsonObject newCfg = new JsonObject();
@@ -534,12 +546,17 @@ public class DragonLauncher extends JFrame {
                 HttpRequest post = HttpRequest.newBuilder()
                         .uri(URI.create(BIN_URL))
                         .header("Content-Type", "application/json")
+                        .header("Accept", "application/json")
                         .POST(HttpRequest.BodyPublishers.ofString(new Gson().toJson(db)))
                         .build();
-                client.send(post, HttpResponse.BodyHandlers.ofString());
+                HttpResponse<String> postRes = client.send(post, HttpResponse.BodyHandlers.ofString());
 
-                fetchConfigsFromSite();
-                SwingUtilities.invokeLater(() -> cfgStatusLbl.setText("✓ Конфиг «" + cfgName.trim() + "» опубликован на сайте!"));
+                if (postRes.statusCode() >= 200 && postRes.statusCode() < 300) {
+                    fetchConfigsFromSite();
+                    SwingUtilities.invokeLater(() -> cfgStatusLbl.setText("✓ Конфиг «" + cfgName.trim() + "» опубликован на сайте!"));
+                } else {
+                    SwingUtilities.invokeLater(() -> cfgStatusLbl.setText("Ошибка сервера: код " + postRes.statusCode()));
+                }
             } catch (Exception ex) {
                 SwingUtilities.invokeLater(() -> cfgStatusLbl.setText("Ошибка отправки: " + ex.getMessage()));
             }
@@ -613,9 +630,10 @@ public class DragonLauncher extends JFrame {
             if (u.equalsIgnoreCase(OWNER_LOGIN) && p.equals(OWNER_PASS)) {
                 currentUser = u; currentRank = "Owner";
             } else {
-                HttpClient client = HttpClient.newHttpClient();
-                String json = client.send(HttpRequest.newBuilder().uri(URI.create(BIN_URL)).GET().build(), HttpResponse.BodyHandlers.ofString()).body();
-                JsonObject db = JsonParser.parseString(json).getAsJsonObject();
+                HttpClient client = HttpClient.newBuilder().followRedirects(HttpClient.Redirect.ALWAYS).build();
+                HttpRequest req = HttpRequest.newBuilder().uri(URI.create(BIN_URL)).header("Accept", "application/json").GET().build();
+                String json = client.send(req, HttpResponse.BodyHandlers.ofString()).body().trim();
+                JsonObject db = json.startsWith("{") ? JsonParser.parseString(json).getAsJsonObject() : new JsonObject();
                 if (!db.has(u) || !db.getAsJsonObject(u).get("p").getAsString().equals(p)) {
                     SwingUtilities.invokeLater(() -> { loginStatus.setText("Неверный логин или пароль!"); loginBtn.setEnabled(true); });
                     return;
