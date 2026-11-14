@@ -225,17 +225,21 @@ public class DragonLauncher extends JFrame {
         JLabel verTitle = new JLabel("DragonVisuals 1.21.4");
         verTitle.setFont(new Font("SansSerif", Font.BOLD, 22));
         verTitle.setForeground(Color.WHITE);
+        verTitle.setAlignmentX(Component.CENTER_ALIGNMENT);
 
-        JLabel verDesc = new JLabel("<html><body style='width: 290px; color: #cbd5e1;'>Автоматическое обновление визуалов, синхронизация VIP-статуса и запуск клиента Fabric 1.21.4.</body></html>");
+        JLabel verDesc = new JLabel("<html><div style='width: 245px; text-align: center; color: #cbd5e1;'>Автоматическое обновление визуалов, синхронизация VIP-статуса и запуск клиента Fabric 1.21.4.</div></html>");
         verDesc.setFont(new Font("SansSerif", Font.PLAIN, 13));
+        verDesc.setAlignmentX(Component.CENTER_ALIGNMENT);
 
         playBtn = createPurpleBtn("ЗАПУСТИТЬ ИГРУ");
-        playBtn.setMaximumSize(new Dimension(340, 46));
+        playBtn.setMaximumSize(new Dimension(320, 46));
         playBtn.addActionListener(e -> new Thread(this::installAndLaunchGame).start());
 
         mainStatus = new JLabel("Готов к запуску");
         mainStatus.setFont(new Font("SansSerif", Font.PLAIN, 12));
         mainStatus.setForeground(new Color(167, 139, 250));
+        mainStatus.setAlignmentX(Component.CENTER_ALIGNMENT);
+
 
         rightCard.add(verTitle);
         rightCard.add(Box.createVerticalStrut(12));
