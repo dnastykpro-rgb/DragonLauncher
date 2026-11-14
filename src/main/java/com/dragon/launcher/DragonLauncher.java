@@ -711,10 +711,3 @@ public class DragonLauncher extends JFrame {
             SwingUtilities.invokeLater(() -> { mainStatus.setText("Ошибка: " + ex.getMessage()); playBtn.setEnabled(true); });
         }
     }
-
-    private void launchInstalledMinecraft(Path mcDir, String nick) throws Exception 
-
-    public static void main(String[] args) {
-        SwingUtilities.invokeLater(() -> new DragonLauncher().setVisible(true));
-    }
-}
