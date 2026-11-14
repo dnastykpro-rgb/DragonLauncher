@@ -26,9 +26,10 @@ public class MinecraftDownloader {
     private static final String MC_VERSION = "1.21.4";
     private static final String MOJANG_MANIFEST = "https://mojang.com";
     private static final String FABRIC_META = "https://fabricmc.net" + MC_VERSION;
-    private static final String MODRINTH_FAPI = "https://modrinth.com" + MC_VERSION + "%22%5D&loaders=%5B%22fabric%22%5D";
+    private static final String MODRINTH_FAPI = "https://modrinth.com" + MC_VERSION + "%22%5D&loaders=%5B%22fabric%22%5D"; 
 
-    private static final HttpClient CLIENT = HttpClient.newBuilder()
+        private static final HttpClient CLIENT = HttpClient.newBuilder()
+            .version(HttpClient.Version.HTTP_1_1)
             .followRedirects(HttpClient.Redirect.ALWAYS)
             .build();
 
