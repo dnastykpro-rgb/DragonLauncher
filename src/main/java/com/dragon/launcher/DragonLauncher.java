@@ -502,7 +502,7 @@ public class DragonLauncher extends JFrame {
         }
     }
 
-        private void promptAndUploadConfig() {
+           private void promptAndUploadConfig() {
         String cfgName = JOptionPane.showInputDialog(this, "Введите название нового конфига:", "Создать конфиг на сайте", JOptionPane.PLAIN_MESSAGE);
         if (cfgName == null || cfgName.trim().isEmpty()) return;
         String cfgDesc = JOptionPane.showInputDialog(this, "Краткое описание (необязательно):", "Описание конфига", JOptionPane.PLAIN_MESSAGE);
@@ -513,16 +513,13 @@ public class DragonLauncher extends JFrame {
                 Path currentFile = Paths.get(mcPathField.getText().trim(), "DragonVisuals", "current.json");
                 String content = Files.exists(currentFile) ? Files.readString(currentFile, StandardCharsets.UTF_8) : "{\"theme\":\"PurpleGlow\",\"ClickGui\":true}";
 
-                HttpClient client = HttpClient.newBuilder()
-                        .version(HttpClient.Version.HTTP_1_1)
-                        .followRedirects(HttpClient.Redirect.NORMAL)
-                        .build();
-
-                HttpRequest getReq = HttpRequest.newBuilder()
-                        .uri(URI.create(BIN_URL))
-                        .GET()
-                        .build();
-                String rawDb = client.send(getReq, HttpResponse.BodyHandlers.ofString()).body().trim();
+                // 1. Быстрый GET через HttpURLConnection с таймаутом 7 сек
+                java.net.HttpURLConnection getConn = (java.net.HttpURLConnection) URI.create(BIN_URL).toURL().openConnection();
+                getConn.setRequestMethod("GET");
+                getConn.setConnectTimeout(7000);
+                getConn.setReadTimeout(7000);
+                String rawDb = new String(getConn.getInputStream().readAllBytes(), StandardCharsets.UTF_8).trim();
+                getConn.disconnect();
 
                 JsonObject db = rawDb.startsWith("{") ? JsonParser.parseString(rawDb).getAsJsonObject() : new JsonObject();
                 db.remove("__configs");
@@ -542,19 +539,27 @@ public class DragonLauncher extends JFrame {
                 for (JsonElement el : arr) updated.add(el);
                 db.add("configs", updated);
 
-                String payload = new Gson().toJson(db);
-                HttpRequest post = HttpRequest.newBuilder()
-                        .uri(URI.create(BIN_URL))
-                        .header("Content-Type", "application/json; charset=utf-8")
-                        .POST(HttpRequest.BodyPublishers.ofString(payload, StandardCharsets.UTF_8))
-                        .build();
-                HttpResponse<String> postRes = client.send(post, HttpResponse.BodyHandlers.ofString());
+                // 2. Мгновенный POST с фиксированным Content-Length (без зависания на 100-continue)
+                byte[] out = new Gson().toJson(db).getBytes(StandardCharsets.UTF_8);
+                java.net.HttpURLConnection postConn = (java.net.HttpURLConnection) URI.create(BIN_URL).toURL().openConnection();
+                postConn.setRequestMethod("POST");
+                postConn.setDoOutput(true);
+                postConn.setConnectTimeout(7000);
+                postConn.setReadTimeout(7000);
+                postConn.setFixedLengthStreamingMode(out.length);
+                postConn.setRequestProperty("Content-Type", "application/json; charset=UTF-8");
+                try (OutputStream os = postConn.getOutputStream()) {
+                    os.write(out);
+                }
 
-                if (postRes.statusCode() >= 200 && postRes.statusCode() < 300) {
+                int code = postConn.getResponseCode();
+                postConn.disconnect();
+
+                if (code >= 200 && code < 300) {
                     fetchConfigsFromSite();
                     SwingUtilities.invokeLater(() -> cfgStatusLbl.setText("✓ Конфиг «" + cfgName.trim() + "» опубликован на сайте!"));
                 } else {
-                    SwingUtilities.invokeLater(() -> cfgStatusLbl.setText("Ошибка " + postRes.statusCode() + ": " + postRes.body()));
+                    SwingUtilities.invokeLater(() -> cfgStatusLbl.setText("Ошибка сервера: код " + code));
                 }
             } catch (Exception ex) {
                 SwingUtilities.invokeLater(() -> cfgStatusLbl.setText("Ошибка отправки: " + ex.getMessage()));
