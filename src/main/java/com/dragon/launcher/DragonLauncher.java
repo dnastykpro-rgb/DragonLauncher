@@ -693,7 +693,7 @@ public class DragonLauncher extends JFrame {
             File versionsDir = mcDir.resolve("versions").toFile();
             File[] vers = versionsDir.listFiles((dir, name) -> name.contains("fabric") && name.contains("1.21.4"));
             if (vers != null && vers.length > 0) {
-                String vName = vers.getName();
+                String vName = java.util.Arrays.asList(vers).get(0).getName();
                 SwingUtilities.invokeLater(() -> mainStatus.setText("Мод обновлён! Профиль " + vName + " готов."));
             } else {
                 SwingUtilities.invokeLater(() -> mainStatus.setText("Мод установлен! Откройте ваш лаунчер Minecraft."));
