@@ -702,33 +702,17 @@ public class DragonLauncher extends JFrame {
                     }
                 }
             }
+         MinecraftDownloader.downloadAndLaunch(mcDir, mcNickField.getText().trim(), 3072, msg ->
+             SwingUtilities.invokeLater(() -> mainStatus.setText(msg))
+         );
+         SwingUtilities.invokeLater(() -> playBtn.setEnabled(true));
 
-            SwingUtilities.invokeLater(() -> mainStatus.setText("Запуск Minecraft 1.21.4..."));
-            launchInstalledMinecraft(mcDir, mcNickField.getText().trim());
         } catch (Exception ex) {
             SwingUtilities.invokeLater(() -> { mainStatus.setText("Ошибка: " + ex.getMessage()); playBtn.setEnabled(true); });
         }
     }
 
-    private void launchInstalledMinecraft(Path mcDir, String nick) throws Exception {
-        Path tlauncher = mcDir.resolve("TLauncher.exe");
-        Path legacy = Paths.get(System.getenv("APPDATA"), ".tlauncher", "legacy", "Minecraft.exe");
-        if (Files.exists(tlauncher)) {
-            new ProcessBuilder(tlauncher.toString()).start();
-        } else if (Files.exists(legacy)) {
-            new ProcessBuilder(legacy.toString()).start();
-        } else {
-            File versionsDir = mcDir.resolve("versions").toFile();
-            File[] vers = versionsDir.listFiles((dir, name) -> name.contains("fabric") && name.contains("1.21.4"));
-            if (vers != null && vers.length > 0) {
-                String vName = java.util.Arrays.asList(vers).get(0).getName();
-                SwingUtilities.invokeLater(() -> mainStatus.setText("Мод обновлён! Профиль " + vName + " готов."));
-            } else {
-                SwingUtilities.invokeLater(() -> mainStatus.setText("Мод установлен! Откройте ваш лаунчер Minecraft."));
-            }
-        }
-        SwingUtilities.invokeLater(() -> playBtn.setEnabled(true));
-    }
+    private void launchInstalledMinecraft(Path mcDir, String nick) throws Exception 
 
     public static void main(String[] args) {
         SwingUtilities.invokeLater(() -> new DragonLauncher().setVisible(true));
