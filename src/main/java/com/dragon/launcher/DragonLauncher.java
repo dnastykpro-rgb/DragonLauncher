@@ -539,27 +539,41 @@ public class DragonLauncher extends JFrame {
                 for (JsonElement el : arr) updated.add(el);
                 db.add("configs", updated);
 
-                // 2. Мгновенный POST с фиксированным Content-Length (без зависания на 100-continue)
+                               // 2. Мгновенный POST с автоматическим переходом по 307/308 редиректу
                 byte[] out = new Gson().toJson(db).getBytes(StandardCharsets.UTF_8);
-                java.net.HttpURLConnection postConn = (java.net.HttpURLConnection) URI.create(BIN_URL).toURL().openConnection();
-                postConn.setRequestMethod("POST");
-                postConn.setDoOutput(true);
-                postConn.setConnectTimeout(7000);
-                postConn.setReadTimeout(7000);
-                postConn.setFixedLengthStreamingMode(out.length);
-                postConn.setRequestProperty("Content-Type", "application/json; charset=UTF-8");
-                try (OutputStream os = postConn.getOutputStream()) {
-                    os.write(out);
-                }
+                String targetUrl = BIN_URL;
+                int code = 0;
 
-                int code = postConn.getResponseCode();
-                postConn.disconnect();
+                for (int i = 0; i < 3; i++) {
+                    java.net.HttpURLConnection postConn = (java.net.HttpURLConnection) URI.create(targetUrl).toURL().openConnection();
+                    postConn.setInstanceFollowRedirects(false);
+                    postConn.setRequestMethod("POST");
+                    postConn.setDoOutput(true);
+                    postConn.setConnectTimeout(7000);
+                    postConn.setReadTimeout(7000);
+                    postConn.setFixedLengthStreamingMode(out.length);
+                    postConn.setRequestProperty("Content-Type", "application/json; charset=UTF-8");
+                    try (OutputStream os = postConn.getOutputStream()) {
+                        os.write(out);
+                    }
+
+                    code = postConn.getResponseCode();
+                    String loc = postConn.getHeaderField("Location");
+                    postConn.disconnect();
+
+                    if ((code == 307 || code == 308 || code == 301 || code == 302) && loc != null && !loc.isEmpty()) {
+                        targetUrl = loc.startsWith("http") ? loc : URI.create(targetUrl).resolve(loc).toString();
+                    } else {
+                        break;
+                    }
+                }
 
                 if (code >= 200 && code < 300) {
                     fetchConfigsFromSite();
                     SwingUtilities.invokeLater(() -> cfgStatusLbl.setText("✓ Конфиг «" + cfgName.trim() + "» опубликован на сайте!"));
                 } else {
-                    SwingUtilities.invokeLater(() -> cfgStatusLbl.setText("Ошибка сервера: код " + code));
+                    int finalCode = code;
+                    SwingUtilities.invokeLater(() -> cfgStatusLbl.setText("Ошибка сервера: код " + finalCode));
                 }
             } catch (Exception ex) {
                 SwingUtilities.invokeLater(() -> cfgStatusLbl.setText("Ошибка отправки: " + ex.getMessage()));
