@@ -28,14 +28,14 @@ import java.util.zip.ZipInputStream;
 public class DragonLauncher extends JFrame {
     private static final String OWNER_LOGIN = "admin";
     private static final String OWNER_PASS  = "dragon2026";
-    private static final String BIN_URL     = "https://api.npoint.io/9ee13fcc49327b18d386";
+    private static final String BIN_URL     = "https://npoint.io";
     private static final String ZIP_URL     = "https://github.io";
 
     private int mouseX, mouseY;
     private final CardLayout contentLayout = new CardLayout();
     private final JPanel contentPanel = new JPanel(contentLayout);
     private final List<JButton> navButtons = new ArrayList<>();
-    private String activeTab = "HOME";
+    private String activeTab = "PLAY";
 
     private JButton sideAuthBtn;
     private JLabel sideUserRankLbl;
@@ -48,6 +48,7 @@ public class DragonLauncher extends JFrame {
     private JTextField mcNickField;
     private JTextField mcPathField;
     private JLabel mainStatus;
+    private JLabel clientSyncLbl;
     private JButton playBtn;
 
     private JPanel configsListPanel;
@@ -59,20 +60,20 @@ public class DragonLauncher extends JFrame {
 
     public DragonLauncher() {
         setUndecorated(true);
-        setSize(860, 540);
+        setSize(780, 490);
         setLocationRelativeTo(null);
         setBackground(new Color(0, 0, 0, 0));
-        setShape(new RoundRectangle2D.Double(0, 0, 860, 540, 26, 26));
+        setShape(new RoundRectangle2D.Double(0, 0, 780, 490, 26, 26));
 
         JPanel root = new JPanel(new BorderLayout()) {
             @Override
             protected void paintComponent(Graphics g) {
                 Graphics2D g2 = (Graphics2D) g.create();
                 g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-                GradientPaint gp = new GradientPaint(0, 0, new Color(11, 9, 20), getWidth(), getHeight(), new Color(24, 12, 44));
+                GradientPaint gp = new GradientPaint(0, 0, new Color(11, 8, 22), getWidth(), getHeight(), new Color(26, 12, 48));
                 g2.setPaint(gp);
                 g2.fillRoundRect(0, 0, getWidth(), getHeight(), 26, 26);
-                g2.setColor(new Color(168, 85, 247, 95));
+                g2.setColor(new Color(168, 85, 247, 100));
                 g2.setStroke(new BasicStroke(1.5f));
                 g2.drawRoundRect(1, 1, getWidth() - 2, getHeight() - 2, 26, 26);
                 g2.dispose();
@@ -94,33 +95,38 @@ public class DragonLauncher extends JFrame {
         rightWrapper.add(buildTopWindowBar(), BorderLayout.NORTH);
 
         contentPanel.setOpaque(false);
-        contentPanel.add(buildHomeTab(), "HOME");
         contentPanel.add(buildPlayTab(), "PLAY");
         contentPanel.add(buildConfigsTab(), "CONFIGS");
         contentPanel.add(buildSettingsTab(), "SETTINGS");
-        contentPanel.add(buildAboutTab(), "ABOUT");
         contentPanel.add(buildLoginTab(), "LOGIN");
 
         rightWrapper.add(contentPanel, BorderLayout.CENTER);
         root.add(rightWrapper, BorderLayout.CENTER);
         add(root);
 
-        switchTab("HOME");
+        switchTab("PLAY");
     }
 
     private JPanel buildTopWindowBar() {
-        JPanel bar = new JPanel(new FlowLayout(FlowLayout.RIGHT, 10, 12));
+        JPanel bar = new JPanel(new BorderLayout());
         bar.setOpaque(false);
-        bar.setBorder(new EmptyBorder(0, 0, 0, 14));
+        bar.setBorder(new EmptyBorder(12, 24, 4, 14));
 
+        JLabel verTag = new JLabel("MINECRAFT 1.21.4 • FABRIC");
+        verTag.setFont(new Font("SansSerif", Font.BOLD, 11));
+        verTag.setForeground(new Color(167, 139, 250));
+
+        JPanel winBtns = new JPanel(new FlowLayout(FlowLayout.RIGHT, 8, 0));
+        winBtns.setOpaque(false);
         JButton minBtn = createWinBtn("—", new Color(160, 165, 185));
         minBtn.addActionListener(e -> setState(Frame.ICONIFIED));
-
         JButton closeBtn = createWinBtn("✕", new Color(248, 113, 113));
         closeBtn.addActionListener(e -> System.exit(0));
+        winBtns.add(minBtn);
+        winBtns.add(closeBtn);
 
-        bar.add(minBtn);
-        bar.add(closeBtn);
+        bar.add(verTag, BorderLayout.WEST);
+        bar.add(winBtns, BorderLayout.EAST);
         return bar;
     }
 
@@ -148,31 +154,27 @@ public class DragonLauncher extends JFrame {
             }
         };
         side.setOpaque(false);
-        side.setPreferredSize(new Dimension(210, 0));
+        side.setPreferredSize(new Dimension(200, 0));
         side.setLayout(new BoxLayout(side, BoxLayout.Y_AXIS));
-        side.setBorder(new EmptyBorder(22, 16, 22, 16));
+        side.setBorder(new EmptyBorder(22, 16, 20, 16));
 
-        JLabel logo = new JLabel("✦ DRAGON VISUALS");
+        JLabel logo = new JLabel("✦ DRAGONVISUALS");
         logo.setFont(new Font("SansSerif", Font.BOLD, 13));
         logo.setForeground(new Color(233, 213, 255));
         logo.setAlignmentX(Component.LEFT_ALIGNMENT);
 
         side.add(logo);
-        side.add(Box.createVerticalStrut(28));
+        side.add(Box.createVerticalStrut(30));
 
-        side.add(createNavBtn("⌂  Главная", "HOME"));
-        side.add(Box.createVerticalStrut(6));
-        side.add(createNavBtn("▶  Играть", "PLAY"));
-        side.add(Box.createVerticalStrut(6));
+        side.add(createNavBtn("▶  Запуск", "PLAY"));
+        side.add(Box.createVerticalStrut(8));
         side.add(createNavBtn("⚙  Конфиги", "CONFIGS"));
-        side.add(Box.createVerticalStrut(6));
+        side.add(Box.createVerticalStrut(8));
         side.add(createNavBtn("☰  Настройки", "SETTINGS"));
-        side.add(Box.createVerticalStrut(6));
-        side.add(createNavBtn("ⓘ  О программе", "ABOUT"));
 
         side.add(Box.createVerticalGlue());
 
-        sideUserRankLbl = new JLabel("Гость (не выполнен вход)");
+        sideUserRankLbl = new JLabel("Гость (не авторизован)");
         sideUserRankLbl.setFont(new Font("SansSerif", Font.PLAIN, 11));
         sideUserRankLbl.setForeground(new Color(148, 163, 184));
         sideUserRankLbl.setBorder(new EmptyBorder(0, 10, 6, 0));
@@ -191,10 +193,10 @@ public class DragonLauncher extends JFrame {
                 if (tabId.equals(activeTab)) {
                     Graphics2D g2 = (Graphics2D) g.create();
                     g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-                    GradientPaint gp = new GradientPaint(0, 0, new Color(126, 34, 206, 210), getWidth(), 0, new Color(88, 28, 135, 160));
+                    GradientPaint gp = new GradientPaint(0, 0, new Color(126, 34, 206, 215), getWidth(), 0, new Color(88, 28, 135, 165));
                     g2.setPaint(gp);
                     g2.fillRoundRect(0, 0, getWidth(), getHeight(), 14, 14);
-                    g2.setColor(new Color(192, 132, 252, 140));
+                    g2.setColor(new Color(192, 132, 252, 145));
                     g2.drawRoundRect(0, 0, getWidth() - 1, getHeight() - 1, 14, 14);
                     g2.dispose();
                 }
@@ -207,7 +209,7 @@ public class DragonLauncher extends JFrame {
         b.setForeground(new Color(203, 213, 225));
         b.setContentAreaFilled(false);
         b.setBorder(new EmptyBorder(10, 14, 10, 14));
-        b.setMaximumSize(new Dimension(180, 40));
+        b.setMaximumSize(new Dimension(170, 40));
         b.setFocusPainted(false);
         b.setAlignmentX(Component.LEFT_ALIGNMENT);
         b.setCursor(new Cursor(Cursor.HAND_CURSOR));
@@ -230,76 +232,35 @@ public class DragonLauncher extends JFrame {
         }
     }
 
-    private JPanel buildHomeTab() {
-        JPanel p = new JPanel();
-        p.setOpaque(false);
-        p.setLayout(new BoxLayout(p, BoxLayout.Y_AXIS));
-        p.setBorder(new EmptyBorder(10, 32, 28, 32));
-
-        JLabel title = new JLabel("Только визуал.");
-        title.setFont(new Font("SansSerif", Font.BOLD, 34));
-        title.setForeground(Color.WHITE);
-        title.setAlignmentX(Component.CENTER_ALIGNMENT);
-
-        JLabel sub = new JLabel("<html><div style='width:460px;text-align:center;color:#cbd5e1;'>DragonVisuals — это про эстетику и комфорт. Мы создаём лучший визуальный опыт для Minecraft 1.21.4.</div></html>");
-        sub.setFont(new Font("SansSerif", Font.PLAIN, 13));
-        sub.setAlignmentX(Component.CENTER_ALIGNMENT);
-
-        JPanel grid = new JPanel(new GridLayout(1, 2, 16, 16));
-        grid.setOpaque(false);
-        grid.setMaximumSize(new Dimension(580, 210));
-        grid.add(createFeatureCard("✦ Слушаем каждого", "Мы строим проект вокруг ваших пожеланий. Предлагайте идеи — они появятся в обновлении."));
-        grid.add(createFeatureCard("⚡ 100% Легит и FPS", "Никакой автоматизации. Только плавный ClickGui, 3D Katana, TargetESP и высокий FPS."));
-
-        JButton goPlay = createPurpleBtn("Перейти к запуску →");
-        goPlay.addActionListener(e -> switchTab("PLAY"));
-
-        p.add(title);
-        p.add(Box.createVerticalStrut(10));
-        p.add(sub);
-        p.add(Box.createVerticalStrut(26));
-        p.add(grid);
-        p.add(Box.createVerticalGlue());
-        p.add(goPlay);
-        return p;
-    }
-
-    private JPanel createFeatureCard(String head, String body) {
-        JPanel card = createRoundedBox(20);
-        card.setLayout(new BoxLayout(card, BoxLayout.Y_AXIS));
-        card.setBorder(new EmptyBorder(18, 18, 18, 18));
-
-        JLabel h = new JLabel(head);
-        h.setFont(new Font("SansSerif", Font.BOLD, 16));
-        h.setForeground(Color.WHITE);
-
-        JLabel b = new JLabel("<html><div style='width:220px;color:#cbd5e1;'>" + body + "</div></html>");
-        b.setFont(new Font("SansSerif", Font.PLAIN, 12));
-
-        card.add(h);
-        card.add(Box.createVerticalStrut(10));
-        card.add(b);
-        return card;
-    }
     private JPanel buildPlayTab() {
         JPanel p = new JPanel();
         p.setOpaque(false);
         p.setLayout(new BoxLayout(p, BoxLayout.Y_AXIS));
-        p.setBorder(new EmptyBorder(15, 45, 30, 45));
+        p.setBorder(new EmptyBorder(14, 34, 26, 34));
 
         JPanel box = createRoundedBox(22);
         box.setLayout(new BoxLayout(box, BoxLayout.Y_AXIS));
-        box.setBorder(new EmptyBorder(26, 28, 26, 28));
-        box.setMaximumSize(new Dimension(520, 360));
+        box.setBorder(new EmptyBorder(24, 28, 24, 28));
+        box.setMaximumSize(new Dimension(510, 380));
 
-        JLabel h = new JLabel("DragonVisuals • Fabric 1.21.4");
-        h.setFont(new Font("SansSerif", Font.BOLD, 22));
+        JLabel h = new JLabel("DragonVisuals Client");
+        h.setFont(new Font("SansSerif", Font.BOLD, 25));
         h.setForeground(Color.WHITE);
         h.setAlignmentX(Component.CENTER_ALIGNMENT);
 
-        JLabel d = new JLabel("<html><div style='width:380px;text-align:center;color:#cbd5e1;'>Автоматическое обновление визуалов, синхронизация аккаунта и выбранных конфигов перед запуском игры.</div></html>");
-        d.setFont(new Font("SansSerif", Font.PLAIN, 13));
+        JLabel d = new JLabel("<html><div style='width:390px;text-align:center;color:#cbd5e1;'>Фирменный визуальный клиент: ClickGui, TargetESP, JumpCircles, Trails, ChinaHat, 3D Katana и PurpleGlow.</div></html>");
+        d.setFont(new Font("SansSerif", Font.PLAIN, 12));
         d.setAlignmentX(Component.CENTER_ALIGNMENT);
+
+        clientSyncLbl = new JLabel("• Профиль: Гость  |  Обновление: Авто");
+        clientSyncLbl.setFont(new Font("SansSerif", Font.BOLD, 11));
+        clientSyncLbl.setForeground(new Color(192, 132, 252));
+        clientSyncLbl.setAlignmentX(Component.CENTER_ALIGNMENT);
+
+        JLabel nl = new JLabel("Игровой никнейм:");
+        nl.setForeground(new Color(203, 213, 225));
+        nl.setFont(new Font("SansSerif", Font.PLAIN, 12));
+        nl.setAlignmentX(Component.CENTER_ALIGNMENT);
 
         mcNickField = createStyledInput();
         mcNickField.setText("Bratellaly");
@@ -307,21 +268,19 @@ public class DragonLauncher extends JFrame {
 
         mainStatus = new JLabel("Готов к запуску");
         mainStatus.setFont(new Font("SansSerif", Font.PLAIN, 12));
-        mainStatus.setForeground(new Color(192, 132, 252));
+        mainStatus.setForeground(new Color(167, 139, 250));
         mainStatus.setAlignmentX(Component.CENTER_ALIGNMENT);
 
-        playBtn = createPurpleBtn("ЗАПУСТИТЬ ИГРУ");
+        playBtn = createPurpleBtn("ЗАПУСТИТЬ DRAGONVISUALS");
         playBtn.setMaximumSize(new Dimension(320, 46));
         playBtn.addActionListener(e -> new Thread(this::installAndLaunchGame).start());
 
         box.add(h);
-        box.add(Box.createVerticalStrut(10));
+        box.add(Box.createVerticalStrut(8));
         box.add(d);
-        box.add(Box.createVerticalStrut(22));
-        JLabel nl = new JLabel("Никнейм в игре:");
-        nl.setForeground(new Color(203, 213, 225));
-        nl.setFont(new Font("SansSerif", Font.PLAIN, 12));
-        nl.setAlignmentX(Component.CENTER_ALIGNMENT);
+        box.add(Box.createVerticalStrut(14));
+        box.add(clientSyncLbl);
+        box.add(Box.createVerticalStrut(20));
         box.add(nl);
         box.add(Box.createVerticalStrut(6));
         box.add(mcNickField);
@@ -335,16 +294,15 @@ public class DragonLauncher extends JFrame {
         p.add(Box.createVerticalGlue());
         return p;
     }
-
     private JPanel buildConfigsTab() {
         JPanel p = new JPanel(new BorderLayout(0, 12));
         p.setOpaque(false);
-        p.setBorder(new EmptyBorder(5, 28, 22, 28));
+        p.setBorder(new EmptyBorder(6, 26, 20, 26));
 
         JPanel topRow = new JPanel(new BorderLayout());
         topRow.setOpaque(false);
-        JLabel title = new JLabel("Конфиги с сайта");
-        title.setFont(new Font("SansSerif", Font.BOLD, 22));
+        JLabel title = new JLabel("Облачные конфиги");
+        title.setFont(new Font("SansSerif", Font.BOLD, 21));
         title.setForeground(Color.WHITE);
 
         JButton refreshBtn = createPurpleBtn("↻ Обновить");
@@ -357,11 +315,11 @@ public class DragonLauncher extends JFrame {
 
         vipCreateBox = createRoundedBox(16);
         vipCreateBox.setLayout(new BorderLayout(10, 0));
-        vipCreateBox.setBorder(new EmptyBorder(12, 16, 12, 16));
-        JLabel vipText = new JLabel("<html><span style='color:#e9d5ff;'><b>VIP:</b> Опубликовать свои текущие настройки из визуалов на сайт</span></html>");
+        vipCreateBox.setBorder(new EmptyBorder(10, 14, 10, 14));
+        JLabel vipText = new JLabel("<html><span style='color:#e9d5ff;font-size:12px;'><b>VIP:</b> Отправить текущие настройки визуалов на сайт</span></html>");
         JButton createCfgBtn = createPurpleBtn("+ Создать конфиг");
         createCfgBtn.setFont(new Font("SansSerif", Font.BOLD, 12));
-        createCfgBtn.setBorder(new EmptyBorder(7, 14, 7, 14));
+        createCfgBtn.setBorder(new EmptyBorder(6, 12, 6, 12));
         createCfgBtn.addActionListener(e -> promptAndUploadConfig());
         vipCreateBox.add(vipText, BorderLayout.CENTER);
         vipCreateBox.add(createCfgBtn, BorderLayout.EAST);
@@ -384,7 +342,7 @@ public class DragonLauncher extends JFrame {
         scroll.setBorder(null);
         scroll.getVerticalScrollBar().setUnitIncrement(14);
 
-        cfgStatusLbl = new JLabel("Нажмите «Обновить» для загрузки конфигов с сайта.");
+        cfgStatusLbl = new JLabel("Нажмите «Обновить» для синхронизации с сайтом.");
         cfgStatusLbl.setFont(new Font("SansSerif", Font.PLAIN, 12));
         cfgStatusLbl.setForeground(new Color(167, 139, 250));
 
@@ -398,54 +356,36 @@ public class DragonLauncher extends JFrame {
         JPanel p = new JPanel();
         p.setOpaque(false);
         p.setLayout(new BoxLayout(p, BoxLayout.Y_AXIS));
-        p.setBorder(new EmptyBorder(15, 35, 30, 35));
+        p.setBorder(new EmptyBorder(16, 34, 28, 34));
 
         JPanel box = createRoundedBox(20);
         box.setLayout(new BoxLayout(box, BoxLayout.Y_AXIS));
         box.setBorder(new EmptyBorder(22, 24, 22, 24));
-        box.setMaximumSize(new Dimension(560, 240));
+        box.setMaximumSize(new Dimension(510, 260));
 
-        JLabel h = new JLabel("Настройки лаунчера");
+        JLabel h = new JLabel("Настройки клиента");
         h.setFont(new Font("SansSerif", Font.BOLD, 20));
         h.setForeground(Color.WHITE);
 
-        JLabel l = new JLabel("Папка игры (.minecraft):");
+        JLabel l = new JLabel("Путь к директории игры (.minecraft):");
         l.setForeground(new Color(203, 213, 225));
         l.setFont(new Font("SansSerif", Font.PLAIN, 12));
 
         mcPathField = createStyledInput();
         mcPathField.setText(Paths.get(System.getenv("APPDATA"), ".minecraft").toString());
-        mcPathField.setMaximumSize(new Dimension(500, 38));
+        mcPathField.setMaximumSize(new Dimension(460, 38));
+
+        JLabel verInfo = new JLabel("DragonLauncher v2.1  •  dnastykpro-rgb.github.io");
+        verInfo.setForeground(new Color(148, 163, 184));
+        verInfo.setFont(new Font("SansSerif", Font.PLAIN, 11));
 
         box.add(h);
         box.add(Box.createVerticalStrut(18));
         box.add(l);
         box.add(Box.createVerticalStrut(6));
         box.add(mcPathField);
-        p.add(box);
-        return p;
-    }
-    private JPanel buildAboutTab() {
-        JPanel p = new JPanel();
-        p.setOpaque(false);
-        p.setLayout(new BoxLayout(p, BoxLayout.Y_AXIS));
-        p.setBorder(new EmptyBorder(15, 35, 30, 35));
-
-        JPanel box = createRoundedBox(20);
-        box.setLayout(new BoxLayout(box, BoxLayout.Y_AXIS));
-        box.setBorder(new EmptyBorder(24, 26, 24, 26));
-        box.setMaximumSize(new Dimension(560, 240));
-
-        JLabel h = new JLabel("О программе DragonLauncher");
-        h.setFont(new Font("SansSerif", Font.BOLD, 20));
-        h.setForeground(Color.WHITE);
-
-        JLabel info = new JLabel("<html><div style='width:460px;color:#cbd5e1;line-height:1.5;'>Версия лаунчера: <b>2.0</b><br>Целевая версия игры: <b>Minecraft 1.21.4 (Fabric)</b><br>Официальный сайт: <b>dnastykpro-rgb.github.io</b><br><br>Поддерживает облачную синхронизацию VIP-статуса и конфигов игроков.</div></html>");
-        info.setFont(new Font("SansSerif", Font.PLAIN, 13));
-
-        box.add(h);
-        box.add(Box.createVerticalStrut(14));
-        box.add(info);
+        box.add(Box.createVerticalGlue());
+        box.add(verInfo);
         p.add(box);
         return p;
     }
@@ -454,14 +394,14 @@ public class DragonLauncher extends JFrame {
         JPanel p = new JPanel();
         p.setOpaque(false);
         p.setLayout(new BoxLayout(p, BoxLayout.Y_AXIS));
-        p.setBorder(new EmptyBorder(20, 120, 30, 120));
+        p.setBorder(new EmptyBorder(20, 100, 30, 100));
 
-        JLabel title = new JLabel("Вход в аккаунт");
-        title.setFont(new Font("SansSerif", Font.BOLD, 24));
+        JLabel title = new JLabel("Авторизация");
+        title.setFont(new Font("SansSerif", Font.BOLD, 23));
         title.setForeground(Color.WHITE);
         title.setAlignmentX(Component.CENTER_ALIGNMENT);
 
-        JLabel sub = new JLabel("Данные от сайта dnastykpro-rgb.github.io");
+        JLabel sub = new JLabel("Используйте аккаунт с сайта DragonVisuals");
         sub.setFont(new Font("SansSerif", Font.PLAIN, 12));
         sub.setForeground(new Color(180, 165, 210));
         sub.setAlignmentX(Component.CENTER_ALIGNMENT);
@@ -470,7 +410,7 @@ public class DragonLauncher extends JFrame {
         passField = new JPasswordField();
         styleInput(passField);
 
-        loginBtn = createPurpleBtn("Войти в систему");
+        loginBtn = createPurpleBtn("Войти в аккаунт");
         loginBtn.addActionListener(e -> new Thread(this::doLogin).start());
 
         loginStatus = new JLabel(" ");
@@ -491,7 +431,6 @@ public class DragonLauncher extends JFrame {
         p.add(loginStatus);
         return p;
     }
-
     private void updateVipCreateVisibility() {
         boolean isVipPlus = currentRank.equalsIgnoreCase("VIP")
                 || currentRank.equalsIgnoreCase("Moder")
@@ -515,9 +454,9 @@ public class DragonLauncher extends JFrame {
                     for (JsonElement el : arr) {
                         JsonObject c = el.getAsJsonObject();
                         configsListPanel.add(createConfigRow(c));
-                        configsListPanel.add(Box.createVerticalStrut(10));
+                        configsListPanel.add(Box.createVerticalStrut(8));
                     }
-                    cfgStatusLbl.setText("Загружено конфигов: " + arr.size());
+                    cfgStatusLbl.setText("Доступно конфигов: " + arr.size());
                 }
                 configsListPanel.revalidate();
                 configsListPanel.repaint();
@@ -530,8 +469,8 @@ public class DragonLauncher extends JFrame {
     private JPanel createConfigRow(JsonObject c) {
         JPanel row = createRoundedBox(16);
         row.setLayout(new BorderLayout(12, 0));
-        row.setBorder(new EmptyBorder(12, 16, 12, 16));
-        row.setMaximumSize(new Dimension(580, 76));
+        row.setBorder(new EmptyBorder(10, 14, 10, 14));
+        row.setMaximumSize(new Dimension(520, 72));
 
         String name = c.has("name") ? c.get("name").getAsString() : "Config";
         String author = c.has("author") ? c.get("author").getAsString() : "VIP";
@@ -542,7 +481,7 @@ public class DragonLauncher extends JFrame {
 
         JButton addBtn = createPurpleBtn("Добавить");
         addBtn.setFont(new Font("SansSerif", Font.BOLD, 12));
-        addBtn.setBorder(new EmptyBorder(7, 16, 7, 16));
+        addBtn.setBorder(new EmptyBorder(6, 14, 6, 14));
         addBtn.addActionListener(e -> installConfigLocally(name, content));
 
         row.add(info, BorderLayout.CENTER);
@@ -558,9 +497,10 @@ public class DragonLauncher extends JFrame {
             Files.writeString(cfgDir.resolve(safeName), content, StandardCharsets.UTF_8);
             cfgStatusLbl.setText("✓ Конфиг «" + name + "» добавлен в DragonVisuals!");
         } catch (Exception ex) {
-            cfgStatusLbl.setText("Ошибка сохранения конфига: " + ex.getMessage());
+            cfgStatusLbl.setText("Ошибка сохранения: " + ex.getMessage());
         }
     }
+
     private void promptAndUploadConfig() {
         String cfgName = JOptionPane.showInputDialog(this, "Введите название нового конфига:", "Создать конфиг на сайте", JOptionPane.PLAIN_MESSAGE);
         if (cfgName == null || cfgName.trim().isEmpty()) return;
@@ -605,7 +545,6 @@ public class DragonLauncher extends JFrame {
             }
         }).start();
     }
-
     private JPanel createRoundedBox(int radius) {
         JPanel p = new JPanel() {
             @Override
@@ -630,7 +569,7 @@ public class DragonLauncher extends JFrame {
     }
 
     private void styleInput(JTextField tf) {
-        tf.setMaximumSize(new Dimension(340, 38));
+        tf.setMaximumSize(new Dimension(320, 38));
         tf.setBackground(new Color(14, 10, 28));
         tf.setForeground(Color.WHITE);
         tf.setCaretColor(Color.WHITE);
@@ -654,7 +593,7 @@ public class DragonLauncher extends JFrame {
                 super.paintComponent(g);
             }
         };
-        b.setFont(new Font("SansSerif", Font.BOLD, 14));
+        b.setFont(new Font("SansSerif", Font.BOLD, 13));
         b.setForeground(Color.WHITE);
         b.setContentAreaFilled(false);
         b.setBorder(new EmptyBorder(10, 20, 10, 20));
@@ -692,9 +631,10 @@ public class DragonLauncher extends JFrame {
             SwingUtilities.invokeLater(() -> {
                 sideUserRankLbl.setText(currentUser + " [" + currentRank + "]");
                 sideAuthBtn.setText("↪  Сменить аккаунт");
+                clientSyncLbl.setText("• Профиль: " + currentUser + " [" + currentRank + "]  |  Обновление: Авто");
                 loginBtn.setEnabled(true);
                 updateVipCreateVisibility();
-                switchTab("HOME");
+                switchTab("PLAY");
             });
         } catch (Exception ex) {
             SwingUtilities.invokeLater(() -> { loginStatus.setText("Ошибка сети!"); loginBtn.setEnabled(true); });
@@ -744,7 +684,8 @@ public class DragonLauncher extends JFrame {
             File versionsDir = mcDir.resolve("versions").toFile();
             File[] vers = versionsDir.listFiles((dir, name) -> name.contains("fabric") && name.contains("1.21.4"));
             if (vers != null && vers.length > 0) {
-                SwingUtilities.invokeLater(() -> mainStatus.setText("Мод обновлён! Профиль " + vers[0].getName() + " готов."));
+                String vName = vers[0].getName();
+                SwingUtilities.invokeLater(() -> mainStatus.setText("Мод обновлён! Профиль " + vName + " готов."));
             } else {
                 SwingUtilities.invokeLater(() -> mainStatus.setText("Мод установлен! Откройте ваш лаунчер Minecraft."));
             }
