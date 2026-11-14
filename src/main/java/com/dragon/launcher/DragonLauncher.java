@@ -492,7 +492,7 @@ public class DragonLauncher extends JFrame {
 
     private void installConfigLocally(String name, String content) {
         try {
-            Path cfgDir = Paths.get(mcPathField.getText().trim(), "DragonVisuals", "configs");
+            Path cfgDir = Paths.get(mcPathField.getText().trim(), "config", "DragonVisuals", "configs");
             Files.createDirectories(cfgDir);
             String safeName = name.replaceAll("[^a-zA-Z0-9а-яА-Я_-]", "_") + ".json";
             Files.writeString(cfgDir.resolve(safeName), content, StandardCharsets.UTF_8);
@@ -510,7 +510,7 @@ public class DragonLauncher extends JFrame {
         new Thread(() -> {
             try {
                 SwingUtilities.invokeLater(() -> cfgStatusLbl.setText("Отправка текущего конфига на сайт..."));
-                Path currentFile = Paths.get(mcPathField.getText().trim(), "DragonVisuals", "current.json");
+                Path currentFile = Paths.get(mcPathField.getText().trim(), "config", "DragonVisuals", "current.json");
                 String content = Files.exists(currentFile) ? Files.readString(currentFile, StandardCharsets.UTF_8) : "{\"theme\":\"PurpleGlow\",\"ClickGui\":true}";
 
                 // 1. Быстрый GET через HttpURLConnection с таймаутом 7 сек
