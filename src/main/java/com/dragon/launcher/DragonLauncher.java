@@ -375,7 +375,7 @@ public class DragonLauncher extends JFrame {
         mcPathField.setText(Paths.get(System.getenv("APPDATA"), ".minecraft").toString());
         mcPathField.setMaximumSize(new Dimension(460, 38));
 
-        JLabel verInfo = new JLabel("DragonLauncher v2.2  •  dnastykpro-rgb.github.io");
+        JLabel verInfo = new JLabel("DragonLauncher v2.3  •  dnastykpro-rgb.github.io");
         verInfo.setForeground(new Color(148, 163, 184));
         verInfo.setFont(new Font("SansSerif", Font.PLAIN, 11));
 
@@ -442,14 +442,10 @@ public class DragonLauncher extends JFrame {
         SwingUtilities.invokeLater(() -> cfgStatusLbl.setText("Загрузка конфигов с сайта..."));
         try {
             HttpClient client = HttpClient.newBuilder().followRedirects(HttpClient.Redirect.ALWAYS).build();
-            HttpRequest req = HttpRequest.newBuilder()
-                    .uri(URI.create(BIN_URL))
-                    .header("Accept", "application/json")
-                    .GET()
-                    .build();
+            HttpRequest req = HttpRequest.newBuilder().uri(URI.create(BIN_URL)).GET().build();
             String json = client.send(req, HttpResponse.BodyHandlers.ofString()).body().trim();
             JsonObject db = json.startsWith("{") ? JsonParser.parseString(json).getAsJsonObject() : new JsonObject();
-            JsonArray arr = db.has("__configs") && db.get("__configs").isJsonArray() ? db.getAsJsonArray("__configs") : new JsonArray();
+            JsonArray arr = db.has("configs") && db.get("configs").isJsonArray() ? db.getAsJsonArray("configs") : new JsonArray();
 
             SwingUtilities.invokeLater(() -> {
                 configsListPanel.removeAll();
@@ -518,16 +514,12 @@ public class DragonLauncher extends JFrame {
                 String content = Files.exists(currentFile) ? Files.readString(currentFile, StandardCharsets.UTF_8) : "{\"theme\":\"PurpleGlow\",\"ClickGui\":true}";
 
                 HttpClient client = HttpClient.newBuilder().followRedirects(HttpClient.Redirect.ALWAYS).build();
-                HttpRequest getReq = HttpRequest.newBuilder()
-                        .uri(URI.create(BIN_URL))
-                        .header("Accept", "application/json")
-                        .GET()
-                        .build();
-                HttpResponse<String> getRes = client.send(getReq, HttpResponse.BodyHandlers.ofString());
-                String rawDb = getRes.body() == null ? "" : getRes.body().trim();
+                HttpRequest getReq = HttpRequest.newBuilder().uri(URI.create(BIN_URL)).GET().build();
+                String rawDb = client.send(getReq, HttpResponse.BodyHandlers.ofString()).body().trim();
 
                 JsonObject db = rawDb.startsWith("{") ? JsonParser.parseString(rawDb).getAsJsonObject() : new JsonObject();
-                JsonArray arr = db.has("__configs") && db.get("__configs").isJsonArray() ? db.getAsJsonArray("__configs") : new JsonArray();
+                db.remove("__configs");
+                JsonArray arr = db.has("configs") && db.get("configs").isJsonArray() ? db.getAsJsonArray("configs") : new JsonArray();
 
                 JsonObject newCfg = new JsonObject();
                 newCfg.addProperty("id", System.currentTimeMillis());
@@ -541,12 +533,11 @@ public class DragonLauncher extends JFrame {
                 JsonArray updated = new JsonArray();
                 updated.add(newCfg);
                 for (JsonElement el : arr) updated.add(el);
-                db.add("__configs", updated);
+                db.add("configs", updated);
 
                 HttpRequest post = HttpRequest.newBuilder()
                         .uri(URI.create(BIN_URL))
                         .header("Content-Type", "application/json")
-                        .header("Accept", "application/json")
                         .POST(HttpRequest.BodyPublishers.ofString(new Gson().toJson(db)))
                         .build();
                 HttpResponse<String> postRes = client.send(post, HttpResponse.BodyHandlers.ofString());
@@ -631,7 +622,7 @@ public class DragonLauncher extends JFrame {
                 currentUser = u; currentRank = "Owner";
             } else {
                 HttpClient client = HttpClient.newBuilder().followRedirects(HttpClient.Redirect.ALWAYS).build();
-                HttpRequest req = HttpRequest.newBuilder().uri(URI.create(BIN_URL)).header("Accept", "application/json").GET().build();
+                HttpRequest req = HttpRequest.newBuilder().uri(URI.create(BIN_URL)).GET().build();
                 String json = client.send(req, HttpResponse.BodyHandlers.ofString()).body().trim();
                 JsonObject db = json.startsWith("{") ? JsonParser.parseString(json).getAsJsonObject() : new JsonObject();
                 if (!db.has(u) || !db.getAsJsonObject(u).get("p").getAsString().equals(p)) {
@@ -702,7 +693,7 @@ public class DragonLauncher extends JFrame {
             File versionsDir = mcDir.resolve("versions").toFile();
             File[] vers = versionsDir.listFiles((dir, name) -> name.contains("fabric") && name.contains("1.21.4"));
             if (vers != null && vers.length > 0) {
-                String vName = vers[0].getName();
+                String vName = vers.getName();
                 SwingUtilities.invokeLater(() -> mainStatus.setText("Мод обновлён! Профиль " + vName + " готов."));
             } else {
                 SwingUtilities.invokeLater(() -> mainStatus.setText("Мод установлен! Откройте ваш лаунчер Minecraft."));
