@@ -502,7 +502,7 @@ public class DragonLauncher extends JFrame {
         }
     }
 
-    private void promptAndUploadConfig() {
+        private void promptAndUploadConfig() {
         String cfgName = JOptionPane.showInputDialog(this, "Введите название нового конфига:", "Создать конфиг на сайте", JOptionPane.PLAIN_MESSAGE);
         if (cfgName == null || cfgName.trim().isEmpty()) return;
         String cfgDesc = JOptionPane.showInputDialog(this, "Краткое описание (необязательно):", "Описание конфига", JOptionPane.PLAIN_MESSAGE);
@@ -513,8 +513,15 @@ public class DragonLauncher extends JFrame {
                 Path currentFile = Paths.get(mcPathField.getText().trim(), "DragonVisuals", "current.json");
                 String content = Files.exists(currentFile) ? Files.readString(currentFile, StandardCharsets.UTF_8) : "{\"theme\":\"PurpleGlow\",\"ClickGui\":true}";
 
-                HttpClient client = HttpClient.newBuilder().followRedirects(HttpClient.Redirect.ALWAYS).build();
-                HttpRequest getReq = HttpRequest.newBuilder().uri(URI.create(BIN_URL)).GET().build();
+                HttpClient client = HttpClient.newBuilder()
+                        .version(HttpClient.Version.HTTP_1_1)
+                        .followRedirects(HttpClient.Redirect.NORMAL)
+                        .build();
+
+                HttpRequest getReq = HttpRequest.newBuilder()
+                        .uri(URI.create(BIN_URL))
+                        .GET()
+                        .build();
                 String rawDb = client.send(getReq, HttpResponse.BodyHandlers.ofString()).body().trim();
 
                 JsonObject db = rawDb.startsWith("{") ? JsonParser.parseString(rawDb).getAsJsonObject() : new JsonObject();
@@ -535,10 +542,11 @@ public class DragonLauncher extends JFrame {
                 for (JsonElement el : arr) updated.add(el);
                 db.add("configs", updated);
 
+                String payload = new Gson().toJson(db);
                 HttpRequest post = HttpRequest.newBuilder()
                         .uri(URI.create(BIN_URL))
-                        .header("Content-Type", "application/json")
-                        .POST(HttpRequest.BodyPublishers.ofString(new Gson().toJson(db)))
+                        .header("Content-Type", "application/json; charset=utf-8")
+                        .POST(HttpRequest.BodyPublishers.ofString(payload, StandardCharsets.UTF_8))
                         .build();
                 HttpResponse<String> postRes = client.send(post, HttpResponse.BodyHandlers.ofString());
 
@@ -546,13 +554,14 @@ public class DragonLauncher extends JFrame {
                     fetchConfigsFromSite();
                     SwingUtilities.invokeLater(() -> cfgStatusLbl.setText("✓ Конфиг «" + cfgName.trim() + "» опубликован на сайте!"));
                 } else {
-                    SwingUtilities.invokeLater(() -> cfgStatusLbl.setText("Ошибка сервера: код " + postRes.statusCode()));
+                    SwingUtilities.invokeLater(() -> cfgStatusLbl.setText("Ошибка " + postRes.statusCode() + ": " + postRes.body()));
                 }
             } catch (Exception ex) {
                 SwingUtilities.invokeLater(() -> cfgStatusLbl.setText("Ошибка отправки: " + ex.getMessage()));
             }
         }).start();
     }
+
     private JPanel createRoundedBox(int radius) {
         JPanel p = new JPanel() {
             @Override
