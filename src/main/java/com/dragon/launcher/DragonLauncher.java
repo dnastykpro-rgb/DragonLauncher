@@ -361,7 +361,7 @@ public class DragonLauncher extends JFrame {
                 }
             }
 
-            SwingUtilities.invokeLater(() -> mainStatus.setText("Мод обновлён! Профиль " + vers[0].getName() + " готов."));
+           SwingUtilities.invokeLater(() -> mainStatus.setText("Запуск Minecraft 1.21.4..."));
             launchInstalledMinecraft(mcDir, mcNickField.getText().trim());
 
         } catch (Exception ex) {
@@ -380,7 +380,7 @@ public class DragonLauncher extends JFrame {
             File versionsDir = mcDir.resolve("versions").toFile();
             File[] vers = versionsDir.listFiles((dir, name) -> name.contains("fabric") && name.contains("1.21.4"));
             if (vers != null && vers.length > 0) {
-                SwingUtilities.invokeLater(() -> mainStatus.setText("Мод обновлён! Профиль " + vers.getName() + " готов."));
+               SwingUtilities.invokeLater(() -> mainStatus.setText("Мод обновлён! Профиль " + vers[0].getName() + " готов."));
             } else {
                 SwingUtilities.invokeLater(() -> mainStatus.setText("Мод установлен! Откройте ваш лаунчер Minecraft."));
             }
