@@ -361,7 +361,7 @@ public class DragonLauncher extends JFrame {
                 }
             }
 
-            SwingUtilities.invokeLater(() -> mainStatus.setText("Запуск Minecraft 1.21.4..."));
+            SwingUtilities.invokeLater(() -> mainStatus.setText("Мод обновлён! Профиль " + vers[0].getName() + " готов."));
             launchInstalledMinecraft(mcDir, mcNickField.getText().trim());
 
         } catch (Exception ex) {
