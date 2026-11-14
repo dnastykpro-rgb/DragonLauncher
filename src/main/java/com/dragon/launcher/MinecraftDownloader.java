@@ -214,11 +214,11 @@ public class MinecraftDownloader {
         return allowed;
     }
 
-    private static String mavenToPath(String coord) {
-        String[] parts = coord.split(":");
-        String group = parts.replace('.', '/');
-        String artifact = parts;
-        String version = parts;
+       private static String mavenToPath(String coord) {
+        java.util.List<String> parts = java.util.Arrays.asList(coord.split(":"));
+        String group = parts.get(0).replace('.', '/');
+        String artifact = parts.get(1);
+        String version = parts.get(2);
         return group + "/" + artifact + "/" + version + "/" + artifact + "-" + version + ".jar";
     }
 
