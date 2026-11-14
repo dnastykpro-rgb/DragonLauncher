@@ -28,7 +28,7 @@ import java.util.zip.ZipInputStream;
 public class DragonLauncher extends JFrame {
     private static final String OWNER_LOGIN = "admin";
     private static final String OWNER_PASS  = "dragon2026";
-    private static final String BIN_URL     = "https://npoint.io";
+    private static final String BIN_URL     = "https://api.npoint.io/f8f68465f3765f0e888f";
     private static final String ZIP_URL     = "https://github.io";
 
     private int mouseX, mouseY;
