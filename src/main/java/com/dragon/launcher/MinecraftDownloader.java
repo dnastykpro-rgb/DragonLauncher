@@ -235,14 +235,28 @@ public class MinecraftDownloader {
     }
 
     private static String getString(String url) throws Exception {
-        HttpRequest req = HttpRequest.newBuilder().uri(URI.create(url)).GET().build();
-        return CLIENT.send(req, HttpResponse.BodyHandlers.ofString()).body();
+        HttpRequest req = HttpRequest.newBuilder()
+                .uri(URI.create(url))
+                .header("User-Agent", "DragonLauncher/2.5 (dnastykpro-rgb.github.io)")
+                .header("Accept", "application/json")
+                .GET()
+                .build();
+        HttpResponse<String> res = CLIENT.send(req, HttpResponse.BodyHandlers.ofString());
+        if (res.statusCode() < 200 || res.statusCode() >= 300) {
+            throw new RuntimeException("HTTP " + res.statusCode() + " при запросе к " + url);
+        }
+        return res.body();
     }
 
     private static void downloadFile(String url, Path target) throws Exception {
         Files.createDirectories(target.getParent());
-        HttpRequest req = HttpRequest.newBuilder().uri(URI.create(url)).GET().build();
+        HttpRequest req = HttpRequest.newBuilder()
+                .uri(URI.create(url))
+                .header("User-Agent", "DragonLauncher/2.5 (dnastykpro-rgb.github.io)")
+                .GET()
+                .build();
         byte[] data = CLIENT.send(req, HttpResponse.BodyHandlers.ofByteArray()).body();
         Files.write(target, data);
     }
 }
+
